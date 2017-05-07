@@ -185,7 +185,7 @@ put(Ref,Key,Value,Expiry) when is_binary(Key), is_binary(Value) ->
 transact(Ref, TransactionSpec) ->
     gen_server:call(Ref, {transact, TransactionSpec}, infinity).
 
--type kv_fold_fun() ::  fun((binary(),binary(),any())->any()).
+-type kv_fold_fun() ::  fun((K::binary(),V::binary(),Acc1::any()) -> Acc2::any()).
 
 -spec fold(hanoidb(),kv_fold_fun(),any()) -> any().
 fold(Ref,Fun,Acc0) ->

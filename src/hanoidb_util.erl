@@ -38,9 +38,13 @@
          , tstamp/0
          , expiry_time/1
          , has_expired/1
-         , ensure_expiry/1 ]).
+         , ensure_expiry/1
+         , is_key_in_from_range/2
+         , is_key_in_to_range/2
+         , is_key_in_range/2 ]).
 
 -include("src/hanoidb.hrl").
+-include_lib("include/hanoidb.hrl").
 
 -define(ERLANG_ENCODED,  131).
 -define(CRC_ENCODED,     127).
@@ -265,4 +269,19 @@ ensure_expiry(Opts) ->
             ok
     end.
 
+is_key_in_from_range(Key, #key_range{from_inclusive = Inclusive, from_key = K}) ->
+    (Inclusive andalso (K =< Key)) orelse (K < Key).
 
+is_key_in_to_range(Key, #key_range{to_inclusive = Inclusive, to_key = K}) ->
+    ((K == undefined)
+         orelse
+         ((Inclusive andalso
+             (Key =< K))
+          orelse
+             (Key <  K))).
+
+is_key_in_range(Key, Range) ->
+    is_key_in_from_range(Key,Range) andalso is_key_in_to_range(Key,Range).
+
+% -define(KEY_IN_RANGE(Key,Range),
+%         (?KEY_IN_FROM_RANGE(Key,Range) andalso ?KEY_IN_TO_RANGE(Key,Range))).
