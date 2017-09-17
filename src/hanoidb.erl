@@ -179,11 +179,12 @@ put(Ref,Key,Value,infinity) when is_binary(Key), is_binary(Value) ->
 put(Ref,Key,Value,Expiry) when is_binary(Key), is_binary(Value) ->
     gen_server:call(Ref, {put, Key, Value, Expiry}, infinity).
 
--type transact_spec() :: {put, binary(), binary()} | {delete, binary()}.
+-type transact_spec() :: {put, Key::binary(), Value::binary(), Expiry::infinity|pos_integer()} |
+                         {delete, binary()}.
 -spec transact(hanoidb(), [transact_spec()]) ->
                  ok | {error, term()}.
-transact(Ref, TransactionSpec) ->
-    gen_server:call(Ref, {transact, TransactionSpec}, infinity).
+transact(Ref, TransactionSpecs) ->
+    gen_server:call(Ref, {transact, TransactionSpecs}, infinity).
 
 -type kv_fold_fun() ::  fun((K::binary(),V::binary(),Acc1::any()) -> Acc2::any()).
 
@@ -449,8 +450,8 @@ do_put(Key, Value, Expiry, State=#state{ nursery=Nursery, top=Top }) when Nurser
     {ok, Nursery2} = hanoidb_nursery:add(Key, Value, Expiry, Nursery, Top),
     {ok, State#state{nursery=Nursery2}}.
 
-do_transact([{put, Key, Value}], State) ->
-    do_put(Key, Value, infinity, State);
+do_transact([{put, Key, Value, Expiry}], State) ->
+    do_put(Key, Value, Expiry, State);
 do_transact([{delete, Key}], State) ->
     do_put(Key, ?TOMBSTONE, infinity, State);
 do_transact([], State) ->
